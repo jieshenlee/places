@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    
+    <!-- Map/Letter background -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF"
+        android:pathData="M20,35 L100,35 L100,95 L20,95 Z" />
+    
+    <!-- Location pin -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF"
+        android:pathData="M60,25 C52,25 45,32 45,40 C45,52 60,65 60,65 S75,52 75,40 C75,32 68,25 60,25 Z" />
+    
+    <!-- Location pin center dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M55,40 A5,5 0 1,1 65,40 A5,5 0 1,1 55,40 Z" />
+    
+    <!-- Map fold lines -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:pathData="M35,50 L85,50 M35,65 L85,65 M35,80 L85,80" />
+    
+    <!-- Envelope flap -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:pathData="M20,35 L60,60 L100,35" />
+    
+</vector>
