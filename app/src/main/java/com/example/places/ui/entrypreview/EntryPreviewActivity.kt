@@ -5,12 +5,19 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.places.PlacesApplication
 import com.example.places.R
 import com.example.places.databinding.ActivityEntryPreviewBinding
+import com.example.places.data.entity.PublishedActivity
+import com.example.places.data.repository.PublishedActivityRepository
+import java.util.*
 
 class EntryPreviewActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityEntryPreviewBinding
+    private lateinit var publishedActivityRepository: PublishedActivityRepository
 
     companion object {
         private const val EXTRA_LOCATION = "extra_location"
@@ -48,9 +55,15 @@ class EntryPreviewActivity : AppCompatActivity() {
         binding = ActivityEntryPreviewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupRepository()
         loadDataFromIntent()
         setupClickListeners()
         setupBottomNavigation()
+    }
+
+    private fun setupRepository() {
+        val application = application as PlacesApplication
+        publishedActivityRepository = application.publishedActivityRepository
     }
 
     private fun loadDataFromIntent() {
@@ -135,11 +148,54 @@ class EntryPreviewActivity : AppCompatActivity() {
     }
 
     private fun publishEntry() {
-        // TODO: Save entry to database and publish to feed
-        Toast.makeText(this, "Entry published successfully!", Toast.LENGTH_SHORT).show()
+        // Get current user info from shared preferences or user repository
+        val currentUser = getCurrentUser() // You'll need to implement this method
         
-        // Navigate to feed to see the published entry
-        startActivity(Intent(this, com.example.places.ui.feed.FeedActivity::class.java))
-        finish()
+        // Create a published activity from the current entry data
+        val publishedActivity = PublishedActivity(
+            id = System.currentTimeMillis().toString(),
+            username = currentUser.displayName ?: "Sophia Carter",
+            userProfileImage = currentUser.profileImageUrl,
+            location = binding.tvLocation.text.toString(),
+            date = binding.tvDate.text.toString(),
+            description = binding.tvDescription.text.toString(),
+            activityTitle = binding.tvActivityName.text.toString(),
+            activityDescription = binding.tvActivityDescription.text.toString(),
+            activityTime = binding.tvActivityDuration.text.toString(),
+            heroImage = null,
+            activityImage = null,
+            likeCount = 0,
+            commentCount = 0,
+            shareCount = 0,
+            isLiked = false,
+            isBookmarked = false,
+            createdAt = Date(),
+            updatedAt = Date()
+        )
+        
+        // Save to Room database
+        lifecycleScope.launch {
+            publishedActivityRepository.insertPublishedActivity(publishedActivity)
+            Toast.makeText(this@EntryPreviewActivity, "Entry published successfully!", Toast.LENGTH_SHORT).show()
+            
+            // Navigate to profile to show the newly published activity
+            val intent = Intent(this@EntryPreviewActivity, com.example.places.ui.profile.ProfileActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            finish()
+        }
+    }
+    
+    private fun getCurrentUser(): com.example.places.data.entity.User {
+        // For now, return a default user. In a real app, you'd get this from your user repository
+        return com.example.places.data.entity.User(
+            id = "user1",
+            email = "sophia.carter@example.com",
+            displayName = "Sophia Carter",
+            profileImageUrl = null,
+            bio = "Travel enthusiast | Sharing my adventures",
+            createdAt = Date(),
+            updatedAt = Date()
+        )
     }
 }

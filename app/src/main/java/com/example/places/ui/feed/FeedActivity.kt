@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.launch
 import com.example.places.PlacesApplication
 import com.example.places.R
 import com.example.places.data.entity.FeedPost
@@ -15,23 +17,34 @@ import com.example.places.ui.explore.ExploreActivity
 import com.example.places.ui.messages.MessagesActivity
 import com.example.places.ui.notifications.NotificationsActivity
 import com.example.places.ui.profile.ProfileActivity
+import com.example.places.data.entity.PublishedActivity
+import com.example.places.data.repository.PublishedActivityRepository
 
 class FeedActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityFeedBinding
     private lateinit var viewModel: FeedViewModel
     private lateinit var feedAdapter: FeedAdapter
+    private lateinit var publishedActivityAdapter: PublishedActivityAdapter
+    private lateinit var publishedActivityRepository: PublishedActivityRepository
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFeedBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        setupRepository()
         setupViewModel()
         setupRecyclerView()
         setupBottomNavigation()
         setupFAB()
         observeViewModel()
+        loadInitialData()
+    }
+    
+    private fun setupRepository() {
+        val application = application as PlacesApplication
+        publishedActivityRepository = application.publishedActivityRepository
     }
     
     private fun setupViewModel() {
@@ -45,18 +58,18 @@ class FeedActivity : AppCompatActivity() {
     }
     
     private fun setupRecyclerView() {
-        feedAdapter = FeedAdapter(
-            onLikeClick = { post -> viewModel.toggleLike(post) },
-            onCommentClick = { post -> handleCommentClick(post) },
-            onShareClick = { post -> handleShareClick(post) },
-            onBookmarkClick = { post -> viewModel.toggleBookmark(post) },
-            onUserClick = { post -> handleUserClick(post) },
-            onPostClick = { post -> handlePostClick(post) }
+        publishedActivityAdapter = PublishedActivityAdapter(
+            onLikeClick = { activity -> handleLikeClick(activity) },
+            onCommentClick = { activity -> handleCommentClick(activity) },
+            onShareClick = { activity -> handleShareClick(activity) },
+            onBookmarkClick = { activity -> handleBookmarkClick(activity) },
+            onActivityClick = { activity -> handleActivityClick(activity) },
+            onEditClick = { activity -> handleEditClick(activity) }
         )
         
         binding.recyclerViewFeed.apply {
             layoutManager = LinearLayoutManager(this@FeedActivity)
-            adapter = feedAdapter
+            adapter = publishedActivityAdapter
         }
     }
     
@@ -97,20 +110,68 @@ class FeedActivity : AppCompatActivity() {
     }
     
     private fun observeViewModel() {
-        viewModel.feedPosts.observe(this) { posts ->
-            feedAdapter.submitList(posts)
-        }
-        
-        viewModel.isLoading.observe(this) { isLoading ->
-            // Handle loading state if needed
+        // Observe published activities from Room database
+        publishedActivityRepository.getAllPublishedActivities().observe(this) { activities ->
+            publishedActivityAdapter.submitList(activities)
         }
         
         viewModel.error.observe(this) { error ->
             error?.let {
-                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, it, Toast.LENGTH_LONG).show()
                 viewModel.clearError()
             }
         }
+    }
+    
+    private fun loadInitialData() {
+        // Load sample data if database is empty
+        lifecycleScope.launch {
+            publishedActivityRepository.insertSampleData()
+        }
+    }
+    
+    
+    private fun handleLikeClick(activity: PublishedActivity) {
+        lifecycleScope.launch {
+            publishedActivityRepository.toggleLike(activity.id, activity.likeCount, activity.isLiked)
+            Toast.makeText(this@FeedActivity, "Liked ${activity.activityTitle}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun handleCommentClick(activity: PublishedActivity) {
+        // TODO: Navigate to comments screen
+        Toast.makeText(this, "Comments for ${activity.activityTitle}", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun handleShareClick(activity: PublishedActivity) {
+        lifecycleScope.launch {
+            publishedActivityRepository.incrementShareCount(activity.id)
+            Toast.makeText(this@FeedActivity, "Share ${activity.activityTitle}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun handleBookmarkClick(activity: PublishedActivity) {
+        lifecycleScope.launch {
+            publishedActivityRepository.toggleBookmark(activity.id, activity.isBookmarked)
+            Toast.makeText(this@FeedActivity, "Bookmarked ${activity.activityTitle}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun handleActivityClick(activity: PublishedActivity) {
+        // Navigate to activity detail or edit screen
+        Toast.makeText(this, "View details for ${activity.activityTitle}", Toast.LENGTH_SHORT).show()
+        // TODO: Navigate to edit screen
+        // startActivity(Intent(this, EditActivityActivity::class.java))
+    }
+    
+    private fun handleEditClick(activity: PublishedActivity) {
+        // Navigate to edit screen for the published activity
+        Toast.makeText(this, "Edit ${activity.activityTitle}", Toast.LENGTH_SHORT).show()
+        // TODO: Navigate to CreateActivityActivity with pre-filled data for editing
+        // val intent = Intent(this, CreateActivityActivity::class.java)
+        // intent.putExtra("EDIT_MODE", true)
+        // intent.putExtra("ACTIVITY_DATA", activity)
+        // startActivity(intent)
     }
     
     private fun handleCommentClick(post: FeedPost) {

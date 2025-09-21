@@ -18,17 +18,15 @@ class OnboardingActivity3 : AppCompatActivity() {
         val btnLogIn = findViewById<Button>(R.id.btn_log_in)
         
         btnSignUp.setOnClickListener {
-            // Navigate to main app or sign up screen
-            val intent = Intent(this, MainActivity::class.java)
+            // Navigate to sign up screen
+            val intent = Intent(this, com.example.places.ui.auth.SignUpActivity::class.java)
             startActivity(intent)
-            finish()
         }
         
         btnLogIn.setOnClickListener {
-            // Navigate to main app or login screen
-            val intent = Intent(this, MainActivity::class.java)
+            // Navigate to login screen
+            val intent = Intent(this, com.example.places.ui.auth.LoginActivity::class.java)
             startActivity(intent)
-            finish()
         }
     }
 }

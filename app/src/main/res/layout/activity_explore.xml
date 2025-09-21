@@ -61,6 +61,7 @@
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
                         android:hint="Search"
+                        android:minHeight="48dp"
                         android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
                         android:textColor="?attr/colorOnSurface"
                         android:textColorHint="?attr/colorOnSurfaceVariant" />

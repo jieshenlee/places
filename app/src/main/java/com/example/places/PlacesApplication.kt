@@ -6,6 +6,7 @@ import com.example.places.data.repository.ActivityRepository
 import com.example.places.data.repository.CommentRepository
 import com.example.places.data.repository.FeedPostRepository
 import com.example.places.data.repository.NotificationRepository
+import com.example.places.data.repository.PublishedActivityRepository
 import com.example.places.data.repository.TravelCardRepository
 import com.example.places.data.repository.UserRepository
 
@@ -37,6 +38,10 @@ class PlacesApplication : Application() {
     
     val feedPostRepository: FeedPostRepository by lazy {
         FeedPostRepository(database.feedPostDao())
+    }
+    
+    val publishedActivityRepository: PublishedActivityRepository by lazy {
+        PublishedActivityRepository(database.publishedActivityDao())
     }
     
     override fun onCreate() {

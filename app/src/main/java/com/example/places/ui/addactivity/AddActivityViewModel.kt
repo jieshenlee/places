@@ -7,14 +7,18 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.places.data.entity.Activity
 import com.example.places.data.entity.ActivityCategory
+import com.example.places.data.entity.PublishedActivity
 import com.example.places.data.repository.ActivityRepository
+import com.example.places.data.repository.PublishedActivityRepository
 import com.example.places.data.repository.UserRepository
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
 class AddActivityViewModel(
     private val activityRepository: ActivityRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val publishedActivityRepository: PublishedActivityRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableLiveData<Boolean>()
@@ -62,6 +66,7 @@ class AddActivityViewModel(
                     return@launch
                 }
 
+                // Create the regular Activity object
                 val activity = Activity(
                     userId = currentUser.id,
                     title = location, // Using location as title for now
@@ -74,7 +79,34 @@ class AddActivityViewModel(
                     longitude = longitude
                 )
 
+                // Save the regular activity
                 activityRepository.insertActivity(activity)
+
+                // Create and save the PublishedActivity for the feed/profile
+                val dateFormatter = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
+                val publishedActivity = PublishedActivity(
+                    username = currentUser.displayName ?: currentUser.email.substringBefore("@"),
+                    userProfileImage = currentUser.profileImageUrl,
+                    location = location,
+                    date = dateFormatter.format(date),
+                    description = notes.ifEmpty { "Exploring $location" },
+                    activityTitle = location,
+                    activityDescription = notes.ifEmpty { "A wonderful experience at $location" },
+                    activityTime = "All day", // Default time, could be made configurable
+                    heroImage = imageUrls.firstOrNull(),
+                    activityImage = imageUrls.getOrNull(1),
+                    likeCount = 0,
+                    commentCount = 0,
+                    shareCount = 0,
+                    isLiked = false,
+                    isBookmarked = false,
+                    createdAt = Date(),
+                    updatedAt = Date()
+                )
+
+                // Save the published activity
+                publishedActivityRepository.insertPublishedActivity(publishedActivity)
+                
                 _activitySaved.value = true
                 
             } catch (e: Exception) {
@@ -97,12 +129,13 @@ class AddActivityViewModel(
 
 class AddActivityViewModelFactory(
     private val activityRepository: ActivityRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val publishedActivityRepository: PublishedActivityRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddActivityViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AddActivityViewModel(activityRepository, userRepository) as T
+            return AddActivityViewModel(activityRepository, userRepository, publishedActivityRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

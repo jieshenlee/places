@@ -20,7 +20,8 @@ class AddActivityActivity : AppCompatActivity() {
     private val viewModel: AddActivityViewModel by viewModels {
         AddActivityViewModelFactory(
             (application as PlacesApplication).activityRepository,
-            (application as PlacesApplication).userRepository
+            (application as PlacesApplication).userRepository,
+            (application as PlacesApplication).publishedActivityRepository
         )
     }
 
@@ -89,7 +90,7 @@ class AddActivityActivity : AppCompatActivity() {
 
     private fun setupClickListeners() {
         binding.btnAddActivity.setOnClickListener {
-            startActivity(Intent(this, com.example.places.ui.createactivity.CreateActivityActivity::class.java))
+            saveActivity()
         }
 
         binding.btnAddPhoto.setOnClickListener {

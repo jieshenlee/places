@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:fillViewport="true"
         android:paddingTop="80dp"
-        android:paddingBottom="120dp">
+        android:paddingBottom="140dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -72,7 +72,7 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:src="@drawable/ic_edit"
-                            android:tint="?attr/colorOnSurface" />
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
                     </LinearLayout>
 
@@ -151,7 +151,7 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:src="@drawable/ic_edit"
-                            android:tint="?attr/colorOnSurface" />
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
                     </LinearLayout>
 
@@ -226,23 +226,6 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Publish Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnPublish"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_gravity="bottom"
-        android:layout_margin="16dp"
-        android:backgroundTint="#FFA500"
-        android:text="📤 Publish"
-        android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        app:cornerRadius="12dp"
-        app:icon="@drawable/ic_publish"
-        app:iconGravity="textStart"
-        app:iconTint="@android:color/white" />
-
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
@@ -254,5 +237,24 @@
         app:itemIconTint="@color/bottom_nav_item_color"
         app:itemTextColor="@color/bottom_nav_item_color"
         app:labelVisibilityMode="labeled" />
+
+    <!-- Publish Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPublish"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="72dp"
+        android:backgroundTint="#FFA500"
+        android:text="📤 Publish"
+        android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/ic_publish"
+        app:iconGravity="textStart"
+        app:iconTint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
