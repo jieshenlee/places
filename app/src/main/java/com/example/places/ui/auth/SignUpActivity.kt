@@ -22,11 +22,17 @@ class SignUpActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivitySignupBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        
-        setupUI()
-        observeViewModel()
+        try {
+            binding = ActivitySignupBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            
+            setupUI()
+            observeViewModel()
+        } catch (e: Exception) {
+            android.util.Log.e("SignUpActivity", "Error in onCreate: ${e.message}", e)
+            Toast.makeText(this, "Error initializing sign up: ${e.message}", Toast.LENGTH_LONG).show()
+            finish()
+        }
     }
     
     private fun setupUI() {
@@ -37,13 +43,18 @@ class SignUpActivity : AppCompatActivity() {
         
         // Sign up button
         binding.btnSignUp.setOnClickListener {
-            val displayName = binding.etDisplayName.text.toString().trim()
-            val email = binding.etEmail.text.toString().trim()
-            val password = binding.etPassword.text.toString()
-            val confirmPassword = binding.etConfirmPassword.text.toString()
-            
-            if (validateInput(displayName, email, password, confirmPassword)) {
-                viewModel.signUp(displayName, email, password)
+            try {
+                val displayName = binding.etDisplayName.text.toString().trim()
+                val email = binding.etEmail.text.toString().trim()
+                val password = binding.etPassword.text.toString()
+                val confirmPassword = binding.etConfirmPassword.text.toString()
+                
+                if (validateInput(displayName, email, password, confirmPassword)) {
+                    viewModel.signUp(displayName, email, password)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("SignUpActivity", "Error in sign up button click: ${e.message}", e)
+                Toast.makeText(this, "Error during sign up: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
         

@@ -18,8 +18,17 @@ class SplashActivity : AppCompatActivity() {
         supportActionBar?.hide()
         
         Handler(Looper.getMainLooper()).postDelayed({
-            val intent = Intent(this, OnboardingActivity1::class.java)
-            startActivity(intent)
+            // Check if user is already logged in
+            val userRepository = (application as PlacesApplication).userRepository
+            if (userRepository.isUserLoggedIn()) {
+                // User is logged in, go to main activity
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+            } else {
+                // User is not logged in, go to onboarding
+                val intent = Intent(this, OnboardingActivity1::class.java)
+                startActivity(intent)
+            }
             finish()
         }, splashTimeOut)
     }

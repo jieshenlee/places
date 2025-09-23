@@ -18,6 +18,10 @@ class CreateActivityActivity : AppCompatActivity() {
     private val calendar = Calendar.getInstance()
 
     companion object {
+        const val EXTRA_LOCATION = "LOCATION"
+        const val EXTRA_NOTES = "NOTES"
+        const val EXTRA_DATE = "DATE"
+        
         fun newIntent(context: Context): Intent {
             return Intent(context, CreateActivityActivity::class.java)
         }
@@ -31,6 +35,19 @@ class CreateActivityActivity : AppCompatActivity() {
         setupUI()
         setupClickListeners()
         setupBottomNavigation()
+        populateFieldsFromIntent()
+    }
+
+    private fun populateFieldsFromIntent() {
+        // Get data passed from AddActivityActivity
+        val location = intent.getStringExtra(EXTRA_LOCATION)
+        val notes = intent.getStringExtra(EXTRA_NOTES)
+        val date = intent.getStringExtra(EXTRA_DATE)
+
+        // Populate the first three fields with the received data
+        location?.let { binding.etLocation.setText(it) }
+        notes?.let { binding.etNotes.setText(it) }
+        date?.let { binding.etDate.setText(it) }
     }
 
     private fun setupUI() {

@@ -153,7 +153,18 @@ class AddActivityActivity : AppCompatActivity() {
             return
         }
 
-        // Save the activity
+        // Navigate to CreateActivityActivity with the entered data
+        val formatter = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
+        val formattedDate = formatter.format(selectedDate)
+        
+        val intent = com.example.places.ui.createactivity.CreateActivityActivity.newIntent(this).apply {
+            putExtra(com.example.places.ui.createactivity.CreateActivityActivity.EXTRA_LOCATION, location)
+            putExtra(com.example.places.ui.createactivity.CreateActivityActivity.EXTRA_NOTES, notes)
+            putExtra(com.example.places.ui.createactivity.CreateActivityActivity.EXTRA_DATE, formattedDate)
+        }
+        startActivity(intent)
+        
+        // Also save the activity to the database
         viewModel.saveActivity(
             location = location,
             notes = notes,

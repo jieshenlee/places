@@ -13,40 +13,34 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PLACES">
         <activity
-            android:name=".ui.feed.FeedActivity"
+            android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.Places">
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
         <activity
-            android:name=".SplashActivity"
+            android:name=".ui.feed.FeedActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        
+            android:theme="@style/Theme.Places" />
         <activity
             android:name=".OnboardingActivity1"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-            
         <activity
             android:name=".OnboardingActivity2"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-            
         <activity
             android:name=".OnboardingActivity3"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        
         <activity
             android:name=".MainActivity"
             android:exported="false" />
-            
         <activity
             android:name=".ui.profile.ProfileActivity"
             android:exported="false"
@@ -78,12 +72,18 @@
         <activity
             android:name=".ui.postdetail.PostDetailActivity"
             android:exported="false" />
-            
         <activity
             android:name=".ui.createactivity.CreateActivityActivity"
             android:exported="false"
             android:theme="@style/Theme.Places" />
-            
+        <activity
+            android:name=".ui.auth.LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Places" />
+        <activity
+            android:name=".ui.auth.SignUpActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Places" />
         <activity
             android:name=".ui.entrypreview.EntryPreviewActivity"
             android:exported="false"

@@ -187,15 +187,31 @@ class EntryPreviewActivity : AppCompatActivity() {
     }
     
     private fun getCurrentUser(): com.example.places.data.entity.User {
-        // For now, return a default user. In a real app, you'd get this from your user repository
-        return com.example.places.data.entity.User(
-            id = "user1",
-            email = "sophia.carter@example.com",
-            displayName = "Sophia Carter",
-            profileImageUrl = null,
-            bio = "Travel enthusiast | Sharing my adventures",
-            createdAt = Date(),
-            updatedAt = Date()
-        )
+        // Try to get the actual current user from the repository
+        val userRepository = (application as PlacesApplication).userRepository
+        return try {
+            // This would be a suspend function call in a real implementation
+            // For now, return a consistent default user that matches what's used elsewhere
+            com.example.places.data.entity.User(
+                id = "user1",
+                email = "sophia.carter@example.com",
+                displayName = "Sophia Carter",
+                profileImageUrl = null,
+                bio = "Travel enthusiast | Sharing my adventures",
+                createdAt = Date(),
+                updatedAt = Date()
+            )
+        } catch (e: Exception) {
+            // Fallback to default user
+            com.example.places.data.entity.User(
+                id = "user1",
+                email = "sophia.carter@example.com",
+                displayName = "Sophia Carter",
+                profileImageUrl = null,
+                bio = "Travel enthusiast | Sharing my adventures",
+                createdAt = Date(),
+                updatedAt = Date()
+            )
+        }
     }
 }

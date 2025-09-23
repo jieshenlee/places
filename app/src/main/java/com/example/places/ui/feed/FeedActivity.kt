@@ -158,10 +158,9 @@ class FeedActivity : AppCompatActivity() {
     }
     
     private fun handleActivityClick(activity: PublishedActivity) {
-        // Navigate to activity detail or edit screen
-        Toast.makeText(this, "View details for ${activity.activityTitle}", Toast.LENGTH_SHORT).show()
-        // TODO: Navigate to edit screen
-        // startActivity(Intent(this, EditActivityActivity::class.java))
+        // Navigate to activity detail screen
+        val intent = com.example.places.ui.detail.ActivityDetailActivity.newIntent(this, activity, "feed")
+        startActivity(intent)
     }
     
     private fun handleEditClick(activity: PublishedActivity) {

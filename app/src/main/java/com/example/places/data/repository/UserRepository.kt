@@ -42,6 +42,9 @@ class UserRepository(
         // Simple local authentication - in a real app, you'd hash passwords
         val user = getUserByEmail(email)
         return if (user != null) {
+            // For now, we'll accept any password since we don't store passwords
+            // In a real app, you'd validate the password hash here
+            
             // Save current user info
             sharedPrefs.edit()
                 .putString("current_user_id", user.id)

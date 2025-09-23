@@ -27,6 +27,13 @@ class LoginViewModel(
             _errorMessage.value = null
 
             try {
+                // First check if user exists
+                val existingUser = userRepository.getUserByEmail(email)
+                if (existingUser == null) {
+                    _errorMessage.value = "No account found with this email. Please sign up first."
+                    return@launch
+                }
+                
                 val user = userRepository.loginUser(email, password)
                 if (user != null) {
                     _loginSuccess.value = true
@@ -34,7 +41,7 @@ class LoginViewModel(
                     _errorMessage.value = "Invalid email or password"
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Login failed. Please try again."
+                _errorMessage.value = "Login failed: ${e.message}"
             } finally {
                 _isLoading.value = false
             }

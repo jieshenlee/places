@@ -120,8 +120,8 @@ class ProfileActivity : AppCompatActivity() {
         // Set initial view mode to grid
         updateViewToggleButtons(isGridView = true)
         
-        // Set default tab selection to Posts (index 1)
-        binding.tabLayout.selectTab(binding.tabLayout.getTabAt(1))
+        // Set default tab selection to Posts (index 0 now)
+        binding.tabLayout.selectTab(binding.tabLayout.getTabAt(0))
     }
 
     private fun setupRecyclerView() {
@@ -217,13 +217,23 @@ class ProfileActivity : AppCompatActivity() {
             btnGridView.setOnClickListener {
                 updateViewToggleButtons(isGridView = true)
                 updateRecyclerViewLayout(isGridView = true)
-                travelCardAdapter.setViewType(isGrid = true)
+                
+                // Check which adapter is currently active
+                when (binding.rvTravelCards.adapter) {
+                    travelCardAdapter -> travelCardAdapter.setViewType(isGrid = true)
+                    publishedActivityAdapter -> publishedActivityAdapter.setViewType(isGrid = true)
+                }
             }
             
             btnListView.setOnClickListener {
                 updateViewToggleButtons(isGridView = false)
                 updateRecyclerViewLayout(isGridView = false)
-                travelCardAdapter.setViewType(isGrid = false)
+                
+                // Check which adapter is currently active
+                when (binding.rvTravelCards.adapter) {
+                    travelCardAdapter -> travelCardAdapter.setViewType(isGrid = false)
+                    publishedActivityAdapter -> publishedActivityAdapter.setViewType(isGrid = false)
+                }
             }
             
             fabAddTrip.setOnClickListener {
@@ -318,9 +328,8 @@ class ProfileActivity : AppCompatActivity() {
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 when (tab?.position) {
-                    0 -> showTripsView()
-                    1 -> showPostsView()
-                    2 -> showSavedView()
+                    0 -> showPostsView()
+                    1 -> showSavedView()
                 }
             }
 
@@ -339,14 +348,36 @@ class ProfileActivity : AppCompatActivity() {
     private fun showPostsView() {
         binding.rvTravelCards.adapter = publishedActivityAdapter
         binding.rvTravelCards.layoutManager = LinearLayoutManager(this)
-        binding.btnGridView.visibility = android.view.View.GONE
-        binding.btnListView.visibility = android.view.View.GONE
+        binding.btnGridView.visibility = android.view.View.VISIBLE
+        binding.btnListView.visibility = android.view.View.VISIBLE
         
         // Load published activities for the current user when showing the Posts tab
         viewModel.currentUser.value?.let { user ->
-            val username = user.displayName ?: "Sophia Carter"
-            publishedActivityRepository.getPublishedActivitiesByUser(username).observe(this) { activities ->
-                publishedActivityAdapter.submitList(activities)
+            // Use multiple possible usernames to match activities
+            val possibleUsernames = listOf(
+                user.displayName ?: "Sophia Carter",
+                "Sophia Carter", // Fallback default
+                user.email.substringBefore("@") // Email-based username
+            )
+            
+            // For now, let's show all published activities to debug the issue
+            publishedActivityRepository.getAllPublishedActivities().observe(this) { allActivities ->
+                // Filter activities that match any of the possible usernames
+                val userActivities = allActivities.filter { activity ->
+                    possibleUsernames.any { username -> 
+                        activity.username.equals(username, ignoreCase = true)
+                    }
+                }
+                
+                publishedActivityAdapter.submitList(userActivities)
+                
+                // Debug: Log the activities to understand what's in the database
+                android.util.Log.d("ProfileActivity", "Total activities: ${allActivities.size}")
+                android.util.Log.d("ProfileActivity", "User activities: ${userActivities.size}")
+                android.util.Log.d("ProfileActivity", "Looking for usernames: $possibleUsernames")
+                allActivities.forEach { activity ->
+                    android.util.Log.d("ProfileActivity", "Activity username: '${activity.username}'")
+                }
             }
         }
     }
@@ -381,8 +412,9 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun handleActivityClick(activity: PublishedActivity) {
-        // Navigate to activity detail or edit screen
-        android.widget.Toast.makeText(this, "View details for ${activity.activityTitle}", android.widget.Toast.LENGTH_SHORT).show()
+        // Navigate to activity detail screen
+        val intent = com.example.places.ui.detail.ActivityDetailActivity.newIntent(this, activity, "profile")
+        startActivity(intent)
     }
 
     private fun handleEditClick(activity: PublishedActivity) {

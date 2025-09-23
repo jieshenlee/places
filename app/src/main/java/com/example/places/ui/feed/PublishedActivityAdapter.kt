@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.places.R
 import com.example.places.databinding.ItemPublishedActivityBinding
+import com.example.places.databinding.ItemPublishedActivityGridBinding
 import com.example.places.data.entity.PublishedActivity
 
 class PublishedActivityAdapter(
@@ -16,55 +17,62 @@ class PublishedActivityAdapter(
     private val onShareClick: (PublishedActivity) -> Unit,
     private val onBookmarkClick: (PublishedActivity) -> Unit,
     private val onActivityClick: (PublishedActivity) -> Unit,
-    private val onEditClick: (PublishedActivity) -> Unit
-) : ListAdapter<PublishedActivity, PublishedActivityAdapter.ViewHolder>(PublishedActivityDiffCallback()) {
+    private val onEditClick: (PublishedActivity) -> Unit,
+    private var isGridView: Boolean = false
+) : ListAdapter<PublishedActivity, RecyclerView.ViewHolder>(PublishedActivityDiffCallback()) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemPublishedActivityBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return ViewHolder(binding)
+    companion object {
+        private const val VIEW_TYPE_GRID = 0
+        private const val VIEW_TYPE_LIST = 1
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun getItemViewType(position: Int): Int {
+        return if (isGridView) VIEW_TYPE_GRID else VIEW_TYPE_LIST
     }
 
-    inner class ViewHolder(
-        private val binding: ItemPublishedActivityBinding
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            VIEW_TYPE_GRID -> {
+                val binding = ItemPublishedActivityGridBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                GridViewHolder(binding)
+            }
+            VIEW_TYPE_LIST -> {
+                val binding = ItemPublishedActivityBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                ListViewHolder(binding)
+            }
+            else -> throw IllegalArgumentException("Invalid view type")
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val activity = getItem(position)
+        when (holder) {
+            is GridViewHolder -> holder.bind(activity)
+            is ListViewHolder -> holder.bind(activity)
+        }
+    }
+
+    fun setViewType(isGrid: Boolean) {
+        if (this.isGridView != isGrid) {
+            this.isGridView = isGrid
+            notifyDataSetChanged()
+        }
+    }
+
+    inner class GridViewHolder(
+        private val binding: ItemPublishedActivityGridBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(activity: PublishedActivity) {
-            binding.tvUsername.text = activity.username
-            binding.tvLocation.text = activity.location
-            binding.tvDate.text = activity.date
-            binding.tvDescription.text = activity.description
-            binding.tvActivityTitle.text = activity.activityTitle
-            binding.tvActivityDescription.text = activity.activityDescription
-            binding.tvActivityTime.text = activity.activityTime
-            binding.tvLikeCount.text = activity.likeCount.toString()
-            binding.tvCommentCount.text = activity.commentCount.toString()
-            binding.tvShareCount.text = activity.shareCount.toString()
-
-            // Load images using Glide
-            activity.userProfileImage?.let { imageUrl ->
-                Glide.with(binding.ivUserProfile.context)
-                    .load(imageUrl)
-                    .circleCrop()
-                    .placeholder(R.drawable.ic_profile_placeholder)
-                    .into(binding.ivUserProfile)
-            }
-
-            activity.heroImage?.let { imageUrl ->
-                Glide.with(binding.ivHeroImage.context)
-                    .load(imageUrl)
-                    .centerCrop()
-                    .placeholder(R.drawable.ic_image_placeholder)
-                    .into(binding.ivHeroImage)
-            }
-
+            // Load activity image using Glide (only image in grid view)
             activity.activityImage?.let { imageUrl ->
                 Glide.with(binding.ivActivityImage.context)
                     .load(imageUrl)
@@ -73,25 +81,29 @@ class PublishedActivityAdapter(
                     .into(binding.ivActivityImage)
             }
 
-            // Update like state
-            binding.ivLike.setImageResource(
-                if (activity.isLiked) R.drawable.ic_favorite 
-                else R.drawable.ic_favorite_border
-            )
+            // Set click listener for the entire card
+            binding.root.setOnClickListener { onActivityClick(activity) }
+        }
+    }
 
-            // Update bookmark state
-            binding.ivBookmark.setImageResource(
-                if (activity.isBookmarked) R.drawable.ic_bookmark 
-                else R.drawable.ic_bookmark_border
-            )
+    inner class ListViewHolder(
+        private val binding: ItemPublishedActivityBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-            // Set click listeners
-            binding.layoutLike.setOnClickListener { onLikeClick(activity) }
-            binding.layoutComment.setOnClickListener { onCommentClick(activity) }
-            binding.layoutShare.setOnClickListener { onShareClick(activity) }
-            binding.ivBookmark.setOnClickListener { onBookmarkClick(activity) }
-            binding.ivEdit.setOnClickListener { onEditClick(activity) }
-            binding.cardActivity.setOnClickListener { onActivityClick(activity) }
+        fun bind(activity: PublishedActivity) {
+            binding.tvLocation.text = activity.location
+
+            // Load hero image using Glide
+            activity.heroImage?.let { imageUrl ->
+                Glide.with(binding.ivHeroImage.context)
+                    .load(imageUrl)
+                    .centerCrop()
+                    .placeholder(R.drawable.ic_image_placeholder)
+                    .into(binding.ivHeroImage)
+            }
+
+            // Set click listener for the entire card
+            binding.root.setOnClickListener { onActivityClick(activity) }
         }
     }
 }
