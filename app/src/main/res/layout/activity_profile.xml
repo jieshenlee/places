@@ -275,7 +275,9 @@
                 android:id="@+id/rv_travel_cards"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
+                android:nestedScrollingEnabled="true"
+                android:paddingBottom="100dp"
+                android:clipToPadding="false"
                 tools:listitem="@layout/item_travel_card_grid" />
 
         </LinearLayout>

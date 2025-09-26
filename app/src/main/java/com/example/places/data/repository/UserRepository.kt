@@ -95,4 +95,23 @@ class UserRepository(
         val userId = getCurrentUserId() ?: return null
         return getUserById(userId)
     }
+    
+    // Initialize sample user for testing
+    suspend fun initializeSampleUser() {
+        val sampleEmail = "demo@places.com"
+        val existingUser = getUserByEmail(sampleEmail)
+        
+        if (existingUser == null) {
+            val sampleUser = User(
+                id = "sample_user_1",
+                email = sampleEmail,
+                displayName = "Demo User",
+                profileImageUrl = null,
+                bio = "Sample user for testing the Places app",
+                createdAt = Date(),
+                updatedAt = Date()
+            )
+            insertUser(sampleUser)
+        }
+    }
 }

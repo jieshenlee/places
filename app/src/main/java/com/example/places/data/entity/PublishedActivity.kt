@@ -2,6 +2,7 @@ package com.example.places.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.io.Serializable
 import java.util.*
 
 @Entity(tableName = "published_activities")
@@ -25,4 +26,4 @@ data class PublishedActivity(
     val isBookmarked: Boolean = false,
     val createdAt: Date = Date(),
     val updatedAt: Date = Date()
-)
+) : Serializable

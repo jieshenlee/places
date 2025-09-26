@@ -1,14 +1,25 @@
 package com.example.places.ui.createactivity
 
+import android.Manifest
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import com.bumptech.glide.Glide
 import com.example.places.R
 import com.example.places.databinding.ActivityCreateActivityBinding
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -16,14 +27,56 @@ class CreateActivityActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCreateActivityBinding
     private val calendar = Calendar.getInstance()
+    private var selectedImageUri: Uri? = null
+    private var tempCameraImageUri: Uri? = null
+
+    // Activity result launchers for image selection
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            selectedImageUri = it
+            updateImagePreview()
+        }
+    }
+
+    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            selectedImageUri = tempCameraImageUri
+            updateImagePreview()
+        }
+    }
+
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        val cameraPermissionGranted = permissions[Manifest.permission.CAMERA] ?: false
+        val storagePermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions[Manifest.permission.READ_MEDIA_IMAGES] ?: false
+        } else {
+            permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: false
+        }
+        
+        if (cameraPermissionGranted && storagePermissionGranted) {
+            showImagePickerDialog()
+        } else {
+            Toast.makeText(this, "Permissions required for image selection", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     companion object {
         const val EXTRA_LOCATION = "LOCATION"
         const val EXTRA_NOTES = "NOTES"
         const val EXTRA_DATE = "DATE"
+        const val EXTRA_IMAGE_URI = "IMAGE_URI"
+        const val EXTRA_EDIT_MODE = "EDIT_MODE"
+        const val EXTRA_ACTIVITY_DATA = "ACTIVITY_DATA"
         
         fun newIntent(context: Context): Intent {
             return Intent(context, CreateActivityActivity::class.java)
+        }
+        
+        fun newEditIntent(context: Context, activity: com.example.places.data.entity.PublishedActivity): Intent {
+            return Intent(context, CreateActivityActivity::class.java).apply {
+                putExtra(EXTRA_EDIT_MODE, true)
+                putExtra(EXTRA_ACTIVITY_DATA, activity)
+            }
         }
     }
 
@@ -39,15 +92,53 @@ class CreateActivityActivity : AppCompatActivity() {
     }
 
     private fun populateFieldsFromIntent() {
-        // Get data passed from AddActivityActivity
-        val location = intent.getStringExtra(EXTRA_LOCATION)
-        val notes = intent.getStringExtra(EXTRA_NOTES)
-        val date = intent.getStringExtra(EXTRA_DATE)
+        if (intent.getBooleanExtra(EXTRA_EDIT_MODE, false)) {
+            // Handle edit mode - populate with existing activity data
+            val activityData = intent.getSerializableExtra(EXTRA_ACTIVITY_DATA) as? com.example.places.data.entity.PublishedActivity
+            activityData?.let { activity ->
+                binding.etLocation.setText(activity.location)
+                binding.etNotes.setText(activity.description)
+                binding.etDate.setText(activity.date)
+                binding.etActivityName.setText(activity.activityTitle)
+                binding.etDescription.setText(activity.activityDescription)
+                binding.etTime.setText(activity.activityTime)
+                
+                // Load existing images
+                activity.heroImage?.let { imageUrl ->
+                    selectedImageUri = Uri.parse(imageUrl)
+                    displaySelectedImage()
+                }
+                
+                // Update toolbar title to indicate edit mode
+                supportActionBar?.title = "Edit Activity"
+            }
+        } else {
+            // Handle create mode - populate with data from AddActivityActivity
+            val location = intent.getStringExtra(EXTRA_LOCATION)
+            val notes = intent.getStringExtra(EXTRA_NOTES)
+            val date = intent.getStringExtra(EXTRA_DATE)
+            val imageUriString = intent.getStringExtra(EXTRA_IMAGE_URI)
 
-        // Populate the first three fields with the received data
-        location?.let { binding.etLocation.setText(it) }
-        notes?.let { binding.etNotes.setText(it) }
-        date?.let { binding.etDate.setText(it) }
+            // Populate the first three fields with the received data
+            location?.let { binding.etLocation.setText(it) }
+            notes?.let { binding.etNotes.setText(it) }
+            date?.let { binding.etDate.setText(it) }
+            
+            // Handle image URI
+            imageUriString?.let { uriString ->
+                selectedImageUri = Uri.parse(uriString)
+                displaySelectedImage()
+            }
+        }
+    }
+    
+    private fun displaySelectedImage() {
+        selectedImageUri?.let { uri ->
+            Glide.with(this)
+                .load(uri)
+                .centerCrop()
+                .into(binding.ivMediaPreview)
+        }
     }
 
     private fun setupUI() {
@@ -70,8 +161,7 @@ class CreateActivityActivity : AppCompatActivity() {
         }
 
         binding.btnBrowseFiles.setOnClickListener {
-            // TODO: Implement file picker
-            Toast.makeText(this, "File picker coming soon", Toast.LENGTH_SHORT).show()
+            checkPermissionsAndShowImagePicker()
         }
 
         binding.btnSaveActivity.setOnClickListener {
@@ -203,5 +293,66 @@ class CreateActivityActivity : AppCompatActivity() {
     private fun addNewActivity() {
         // TODO: Add logic to create additional activity cards dynamically
         Toast.makeText(this, "Add new activity functionality coming soon", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun checkPermissionsAndShowImagePicker() {
+        val cameraPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+        val storagePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
+        } else {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        
+        if (cameraPermission == PackageManager.PERMISSION_GRANTED && 
+            storagePermission == PackageManager.PERMISSION_GRANTED) {
+            showImagePickerDialog()
+        } else {
+            val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                arrayOf(Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES)
+            } else {
+                arrayOf(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+            permissionLauncher.launch(permissions)
+        }
+    }
+    
+    private fun showImagePickerDialog() {
+        val options = arrayOf("Take Photo", "Choose from Gallery")
+        AlertDialog.Builder(this)
+            .setTitle("Select Image")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> openCamera()
+                    1 -> openGallery()
+                }
+            }
+            .show()
+    }
+    
+    private fun openCamera() {
+        val imageFile = File(externalCacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
+        tempCameraImageUri = FileProvider.getUriForFile(
+            this,
+            "${packageName}.fileprovider",
+            imageFile
+        )
+        tempCameraImageUri?.let { uri ->
+            cameraLauncher.launch(uri)
+        }
+    }
+    
+    private fun openGallery() {
+        galleryLauncher.launch("image/*")
+    }
+    
+    private fun updateImagePreview() {
+        selectedImageUri?.let { uri ->
+            Glide.with(this)
+                .load(uri)
+                .into(binding.ivMediaPreview)
+            
+            // Update button text to show image is selected
+            binding.btnBrowseFiles.text = "✓ Image Selected"
+        }
     }
 }

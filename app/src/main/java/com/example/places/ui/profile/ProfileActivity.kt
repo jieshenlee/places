@@ -17,6 +17,7 @@ import com.example.places.databinding.ActivityProfileBinding
 import com.example.places.data.entity.PublishedActivity
 import com.example.places.data.repository.PublishedActivityRepository
 import com.example.places.ui.feed.PublishedActivityAdapter
+import com.example.places.EditProfileActivity
 import com.example.places.OnboardingActivity1
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.launch
@@ -101,12 +102,8 @@ class ProfileActivity : AppCompatActivity() {
     }
     
     private fun loadSampleData() {
-        lifecycleScope.launch {
-            // First clear any existing activities
-            publishedActivityRepository.deleteAllPublishedActivities()
-            // Then insert fresh sample data
-            publishedActivityRepository.insertSampleData()
-        }
+        // No longer loading sample data - users start with empty profile
+        // Activities will be populated when users create them
     }
 
     private fun setupRepository() {
@@ -170,19 +167,22 @@ class ProfileActivity : AppCompatActivity() {
         // Observe published activities for current user
         viewModel.currentUser.observe(this) { user ->
             user?.let { currentUser ->
-                // Get published activities by the current user
-                val username = currentUser.displayName ?: "Sophia Carter"
-                publishedActivityRepository.getPublishedActivitiesByUser(username).observe(this) { activities ->
-                    publishedActivityAdapter.submitList(activities)
-                    
-                    // Update posts count (you can add this to your layout if needed)
-                    // binding.tvPostsCount.text = activities.size.toString()
+                // Build possible usernames to match activities regardless of profile name changes
+                val possibleUsernames = listOf(
+                    currentUser.displayName,
+                    currentUser.email.substringBefore("@")
+                ).filterNotNull()
+
+                // Observe all activities and filter by the possible usernames
+                publishedActivityRepository.getAllPublishedActivities().observe(this) { allActivities ->
+                    val userActivities = allActivities.filter { activity ->
+                        possibleUsernames.any { username ->
+                            activity.username.equals(username, ignoreCase = true)
+                        }
+                    }
+                    publishedActivityAdapter.submitList(userActivities)
                 }
             }
-        }
-
-        viewModel.isLoading.observe(this) { isLoading ->
-            // TODO: Show/hide loading indicator
         }
     }
 
@@ -211,7 +211,7 @@ class ProfileActivity : AppCompatActivity() {
     private fun setupClickListeners() {
         binding.apply {
             btnEditProfile.setOnClickListener {
-                // TODO: Navigate to edit profile activity
+                startActivity(EditProfileActivity.newIntent(this@ProfileActivity))
             }
             
             btnGridView.setOnClickListener {
@@ -418,7 +418,8 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun handleEditClick(activity: PublishedActivity) {
-        // Navigate to edit screen for the published activity
-        android.widget.Toast.makeText(this, "Edit ${activity.activityTitle}", android.widget.Toast.LENGTH_SHORT).show()
+        // Navigate to CreateActivityActivity with pre-filled data for editing
+        val intent = com.example.places.ui.createactivity.CreateActivityActivity.newEditIntent(this, activity)
+        startActivity(intent)
     }
 }

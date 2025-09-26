@@ -102,8 +102,9 @@ class PublishedActivityAdapter(
                     .into(binding.ivHeroImage)
             }
 
-            // Set click listener for the entire card
+            // Set click listeners
             binding.root.setOnClickListener { onActivityClick(activity) }
+            binding.ivEdit.setOnClickListener { onEditClick(activity) }
         }
     }
 }

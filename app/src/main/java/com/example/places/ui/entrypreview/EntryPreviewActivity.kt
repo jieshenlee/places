@@ -148,70 +148,52 @@ class EntryPreviewActivity : AppCompatActivity() {
     }
 
     private fun publishEntry() {
-        // Get current user info from shared preferences or user repository
-        val currentUser = getCurrentUser() // You'll need to implement this method
-        
-        // Create a published activity from the current entry data
-        val publishedActivity = PublishedActivity(
-            id = System.currentTimeMillis().toString(),
-            username = currentUser.displayName ?: "Sophia Carter",
-            userProfileImage = currentUser.profileImageUrl,
-            location = binding.tvLocation.text.toString(),
-            date = binding.tvDate.text.toString(),
-            description = binding.tvDescription.text.toString(),
-            activityTitle = binding.tvActivityName.text.toString(),
-            activityDescription = binding.tvActivityDescription.text.toString(),
-            activityTime = binding.tvActivityDuration.text.toString(),
-            heroImage = null,
-            activityImage = null,
-            likeCount = 0,
-            commentCount = 0,
-            shareCount = 0,
-            isLiked = false,
-            isBookmarked = false,
-            createdAt = Date(),
-            updatedAt = Date()
-        )
-        
-        // Save to Room database
         lifecycleScope.launch {
-            publishedActivityRepository.insertPublishedActivity(publishedActivity)
-            Toast.makeText(this@EntryPreviewActivity, "Entry published successfully!", Toast.LENGTH_SHORT).show()
-            
-            // Navigate to profile to show the newly published activity
-            val intent = Intent(this@EntryPreviewActivity, com.example.places.ui.profile.ProfileActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-            finish()
-        }
-    }
-    
-    private fun getCurrentUser(): com.example.places.data.entity.User {
-        // Try to get the actual current user from the repository
-        val userRepository = (application as PlacesApplication).userRepository
-        return try {
-            // This would be a suspend function call in a real implementation
-            // For now, return a consistent default user that matches what's used elsewhere
-            com.example.places.data.entity.User(
-                id = "user1",
-                email = "sophia.carter@example.com",
-                displayName = "Sophia Carter",
-                profileImageUrl = null,
-                bio = "Travel enthusiast | Sharing my adventures",
-                createdAt = Date(),
-                updatedAt = Date()
-            )
-        } catch (e: Exception) {
-            // Fallback to default user
-            com.example.places.data.entity.User(
-                id = "user1",
-                email = "sophia.carter@example.com",
-                displayName = "Sophia Carter",
-                profileImageUrl = null,
-                bio = "Travel enthusiast | Sharing my adventures",
-                createdAt = Date(),
-                updatedAt = Date()
-            )
+            try {
+                // Get current user from repository
+                val userRepository = (application as PlacesApplication).userRepository
+                val currentUser = userRepository.getCurrentUser()
+                
+                if (currentUser == null) {
+                    Toast.makeText(this@EntryPreviewActivity, "User not found. Please log in again.", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                // Create a published activity from the current entry data
+                val publishedActivity = PublishedActivity(
+                    id = System.currentTimeMillis().toString(),
+                    username = currentUser.displayName ?: currentUser.email.substringBefore("@"),
+                    userProfileImage = currentUser.profileImageUrl,
+                    location = binding.tvLocation.text.toString(),
+                    date = binding.tvDate.text.toString(),
+                    description = binding.tvDescription.text.toString(),
+                    activityTitle = binding.tvActivityName.text.toString(),
+                    activityDescription = binding.tvActivityDescription.text.toString(),
+                    activityTime = binding.tvActivityDuration.text.toString(),
+                    heroImage = null,
+                    activityImage = null,
+                    likeCount = 0,
+                    commentCount = 0,
+                    shareCount = 0,
+                    isLiked = false,
+                    isBookmarked = false,
+                    createdAt = Date(),
+                    updatedAt = Date()
+                )
+                
+                // Save to Room database
+                publishedActivityRepository.insertPublishedActivity(publishedActivity)
+                Toast.makeText(this@EntryPreviewActivity, "Entry published successfully!", Toast.LENGTH_SHORT).show()
+                
+                // Navigate to profile to show the newly published activity
+                val intent = Intent(this@EntryPreviewActivity, com.example.places.ui.profile.ProfileActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+                finish()
+            } catch (e: Exception) {
+                Toast.makeText(this@EntryPreviewActivity, "Failed to publish entry: ${e.message}", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
+            }
         }
     }
 }

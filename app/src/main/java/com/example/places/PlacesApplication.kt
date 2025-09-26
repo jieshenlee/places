@@ -9,6 +9,8 @@ import com.example.places.data.repository.NotificationRepository
 import com.example.places.data.repository.PublishedActivityRepository
 import com.example.places.data.repository.TravelCardRepository
 import com.example.places.data.repository.UserRepository
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class PlacesApplication : Application() {
     
@@ -46,5 +48,14 @@ class PlacesApplication : Application() {
     
     override fun onCreate() {
         super.onCreate()
+        
+        // Initialize sample user for testing using coroutine
+        GlobalScope.launch {
+            try {
+                userRepository.initializeSampleUser()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }

@@ -19,20 +19,13 @@ class FeedViewModel(private val repository: FeedPostRepository) : ViewModel() {
     val feedPosts: LiveData<List<FeedPost>> = repository.getAllPosts()
     
     init {
-        loadSampleData()
+        // No longer loading sample data automatically
+        // Feed will be populated when users create activities
     }
-    
+
     private fun loadSampleData() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                repository.insertSampleData()
-            } catch (e: Exception) {
-                _error.value = "Failed to load feed: ${e.message}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
+        // Removed automatic sample data loading
+        // Users start with empty feed
     }
     
     fun toggleLike(post: FeedPost) {

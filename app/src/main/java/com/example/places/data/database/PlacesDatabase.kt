@@ -47,8 +47,7 @@ abstract class PlacesDatabase : RoomDatabase() {
                     context.applicationContext,
                     PlacesDatabase::class.java,
                     "places_database"
-                ).fallbackToDestructiveMigration()
-                .build()
+                ).build()
                 INSTANCE = instance
                 instance
             }

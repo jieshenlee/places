@@ -252,7 +252,7 @@ class ActivityDetailActivity : AppCompatActivity() {
             }
         }
         
-        // Set current item based on where user came from
+        // Set current item based on where user came from, but don't trigger the listener
         val selectedItemId = when (sourceScreen) {
             "profile" -> R.id.nav_profile
             "explore" -> R.id.nav_explore
@@ -260,6 +260,41 @@ class ActivityDetailActivity : AppCompatActivity() {
             "notifications" -> R.id.nav_notifications
             else -> R.id.nav_feed // default to feed
         }
+        
+        // Temporarily remove listener to avoid triggering navigation
+        binding.bottomNavigation.setOnItemSelectedListener(null)
         binding.bottomNavigation.selectedItemId = selectedItemId
+        
+        // Re-add the listener after setting the selected item
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_feed -> {
+                    startActivity(Intent(this, FeedActivity::class.java))
+                    finish()
+                    true
+                }
+                R.id.nav_explore -> {
+                    startActivity(Intent(this, ExploreActivity::class.java))
+                    finish()
+                    true
+                }
+                R.id.nav_messages -> {
+                    startActivity(Intent(this, MessagesActivity::class.java))
+                    finish()
+                    true
+                }
+                R.id.nav_notifications -> {
+                    startActivity(Intent(this, NotificationsActivity::class.java))
+                    finish()
+                    true
+                }
+                R.id.nav_profile -> {
+                    startActivity(Intent(this, ProfileActivity::class.java))
+                    finish()
+                    true
+                }
+                else -> false
+            }
+        }
     }
 }

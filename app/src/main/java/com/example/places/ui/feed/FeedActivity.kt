@@ -124,10 +124,8 @@ class FeedActivity : AppCompatActivity() {
     }
     
     private fun loadInitialData() {
-        // Load sample data if database is empty
-        lifecycleScope.launch {
-            publishedActivityRepository.insertSampleData()
-        }
+        // No longer loading sample data - users start with empty feed
+        // Activities will be populated when users create them
     }
     
     
@@ -164,13 +162,9 @@ class FeedActivity : AppCompatActivity() {
     }
     
     private fun handleEditClick(activity: PublishedActivity) {
-        // Navigate to edit screen for the published activity
-        Toast.makeText(this, "Edit ${activity.activityTitle}", Toast.LENGTH_SHORT).show()
-        // TODO: Navigate to CreateActivityActivity with pre-filled data for editing
-        // val intent = Intent(this, CreateActivityActivity::class.java)
-        // intent.putExtra("EDIT_MODE", true)
-        // intent.putExtra("ACTIVITY_DATA", activity)
-        // startActivity(intent)
+        // Navigate to CreateActivityActivity with pre-filled data for editing
+        val intent = com.example.places.ui.createactivity.CreateActivityActivity.newEditIntent(this, activity)
+        startActivity(intent)
     }
     
     private fun handleCommentClick(post: FeedPost) {

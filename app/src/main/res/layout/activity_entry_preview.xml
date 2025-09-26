@@ -62,7 +62,7 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:src="@drawable/ic_delete"
-                            android:tint="#FF6B6B" />
+                            app:tint="#FF6B6B" />
 
                         <ImageView
                             android:id="@+id/ivEdit"
@@ -141,7 +141,7 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:src="@drawable/ic_delete"
-                            android:tint="#FF6B6B" />
+                            app:tint="#FF6B6B" />
 
                         <ImageView
                             android:id="@+id/ivEditActivity"
